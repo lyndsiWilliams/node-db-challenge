@@ -1,42 +1,50 @@
-exports.up = function(knex) {
+exports.up = function(knex, Promise) {
   return knex.schema
     .createTable("projects", tbl => {
       tbl.increments();
-      tbl.string("project_name").notNullable();
-      tbl.text("project_description");
       tbl
-        .boolean("project_completed")
-        .defaultTo(false)
-        .notNullable();
+        .string("project", 30)
+        .notNullable()
+        .unique();
+      tbl.string("projectDescription", 256);
+      tbl.boolean("completed").defaultTo(false);
     })
+
     .createTable("tasks", tbl => {
       tbl.increments();
-      tbl.text("task_description").notNullable();
-      tbl.text("task_notes");
+      tbl.string("task", 30).notNullable();
+      tbl.string("taskDescription").notNullable();
+      tbl.string('notes')
       tbl
-        .boolean("task_completed")
-        .defaultTo(false)
-        .notNullable();
-      tbl
-        .integer("task_project_id")
-        .unsigned()
+        .integer("projectId")
         .notNullable()
-        .references("id")
-        .inTable("projects")
-        .onDelete("CASCADE")
-        .onUpdate("CASCADE");
+        .references("projects.id");
+      tbl.boolean("completed").defaultTo(false);
     })
+
     .createTable("resources", tbl => {
       tbl.increments();
-      tbl.string("resource_name").notNullable();
-      tbl.text("resource_description");
+      tbl.string("resource", 50).notNullable();
+      tbl.string("resourceDescription");
+    })
+    .createTable("projectResources", tbl => {
+      tbl.increments();
+
+      tbl
+        .integer("projectId")
+        .notNullable()
+        .references("project.id");
+      tbl
+        .integer("resourceId")
+        .notNullable()
+        .references("resources.id");
     });
 };
 
-exports.down = function(knex) {
+exports.down = function(knex, Promise) {
   return knex.schema
+    .dropTableIfExists("projectResources")
     .dropTableIfExists("resources")
-    .dropTableIfExists("project_details")
     .dropTableIfExists("tasks")
     .dropTableIfExists("projects");
 };
